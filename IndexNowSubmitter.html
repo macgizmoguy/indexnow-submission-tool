@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>IndexNow Submitter with keyLocation</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 16px;
+      line-height: 1.5;
+    }
+    h2 { margin-top: 40px; }
+    textarea, button, input {
+      width: 100%;
+      box-sizing: border-box;
+      margin: 8px 0;
+      padding: 8px;
+      font-size: 14px;
+    }
+    button { cursor: pointer; background: #0066cc; color: white; border: none; border-radius: 4px; }
+    button:hover { background: #0052a3; }
+    .status {
+      margin-top: 12px;
+      white-space: pre-wrap;
+      font-family: monospace;
+      font-size: 13px;
+      background: #f7f7f7;
+      padding: 10px;
+      border: 1px solid #ddd;
+      min-height: 40px;
+    }
+    .history {
+      margin-top: 12px;
+      white-space: pre-wrap;
+      font-family: monospace;
+      font-size: 13px;
+      background: #f0f0f0;
+      padding: 10px;
+      border: 1px solid #ccc;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .box {
+      border: 2px solid #ccc;
+      padding: 20px;
+      margin-top: 30px;
+      border-radius: 8px;
+    }
+    .success { color: green; }
+    .error { color: red; }
+    label {
+      display: block;
+      margin-top: 12px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>IndexNow URL Submitter</h1>
+  <p>Submit URLs with proper keyLocation parameter. Configure your proxy URL below.</p>
+
+  <div class="box" style="background: #fffacd; border-color: #daa520;">
+    <h3>⚙️ Configuration</h3>
+    <label for="proxyUrl">Proxy URL (your server-side endpoint):</label>
+    <input type="text" id="proxyUrl" value="https://macgizmoguy.com/indexnow-proxy.php" placeholder="https://yourdomain.com/indexnow-proxy.php">
+    <p style="font-size: 12px; color: #666;">Leave blank to use the default. Update this to match your actual proxy path.</p>
+  </div>
+
+  <!-- MacGizmoGuy -->
+  <div class="box">
+    <h2>MacGizmoGuy.com</h2>
+
+    <label for="macUrls">URLs (one per line):</label>
+    <textarea id="macUrls" rows="6" placeholder="https://macgizmoguy.com/page-1&#10;https://macgizmoguy.com/page-2"></textarea>
+    
+    <button id="macSubmit">Submit URLs</button>
+    <button id="macSitemap">Submit Sitemap</button>
+
+    <h3>Status</h3>
+    <div class="status" id="macStatus">Ready</div>
+    
+    <h3>Recent Submissions</h3>
+    <div class="history" id="macHistory">None yet</div>
+  </div>
+
+  <!-- WaterLilyBear -->
+  <div class="box">
+    <h2>WaterLilyBear.com</h2>
+
+    <label for="wlbUrls">URLs (one per line):</label>
+    <textarea id="wlbUrls" rows="6" placeholder="https://waterlilybear.com/page-1&#10;https://waterlilybear.com/page-2"></textarea>
+    
+    <button id="wlbSubmit">Submit URLs</button>
+    <button id="wlbSitemap">Submit Sitemap</button>
+
+    <h3>Status</h3>
+    <div class="status" id="wlbStatus">Ready</div>
+    
+    <h3>Recent Submissions</h3>
+    <div class="history" id="wlbHistory">None yet</div>
+  </div>
+
+  <script>
+    const CONFIG = {
+      macgizmoguy: {
+        host: 'macgizmoguy.com',
+        key: 'macgizmoguy',
+        keyLocation: 'https://macgizmoguy.com/macgizmoguy.txt',
+        sitemap: 'https://macgizmoguy.com/sitemap.xml'
+      },
+      waterlilybear: {
+        host: 'waterlilybear.com',
+        key: 'waterlilybear',
+        keyLocation: 'https://waterlilybear.com/waterlilybear.txt',
+        sitemap: 'https://waterlilybear.com/sitemap.xml'
+      }
+    };
+
+    function getProxyUrl() {
+      const customUrl = document.getElementById('proxyUrl').value.trim();
+      return customUrl || 'https://macgizmoguy.com/indexnow-proxy.php';
+    }
+
+    function loadHistory(domain) {
+      try {
+        const stored = localStorage.getItem('history_' + domain);
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        console.error('Failed to load history:', e);
+        return [];
+      }
+    }
+
+    function saveHistory(domain, entries) {
+      try {
+        localStorage.setItem('history_' + domain, JSON.stringify(entries.slice(-20)));
+      } catch (e) {
+        console.error('Failed to save history:', e);
+      }
+    }
+
+    function renderHistory(domain, elementId) {
+      const el = document.getElementById(elementId);
+      if (!el) {
+        console.warn('Element not found:', elementId);
+        return;
+      }
+      
+      const history = loadHistory(domain);
+      if (history.length === 0) {
+        el.textContent = 'None yet';
+        return;
+      }
+      
+      const html = history
+        .slice(-10)
+        .reverse()
+        .map(h => `${h.time} – ${h.url} – HTTP ${h.status}`)
+        .join('\n');
+      el.textContent = html;
+    }
+
+    async function submitToIndexNow(host, key, keyLocation, urlList, proxyUrl, statusEl, domain) {
+      statusEl.textContent = 'Submitting ' + urlList.length + ' URL(s)...\n';
+      statusEl.className = '';
+
+      try {
+        const response = await fetch(proxyUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            host: host,
+            key: key,
+            keyLocation: keyLocation,
+            urlList: urlList
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.status === 200) {
+          statusEl.textContent = '✓ Success! HTTP ' + data.status + '\n\nIndexNow received your submission.';
+          statusEl.className = 'success';
+
+          // Record in history
+          const history = loadHistory(domain);
+          urlList.forEach(url => {
+            history.push({
+              time: new Date().toLocaleString(),
+              url: url,
+              status: 200
+            });
+          });
+          saveHistory(domain, history);
+          renderHistory(domain, domain + 'History');
+        } else {
+          const errorMsg = data.response ? JSON.stringify(data.response) : data.error || 'Unknown error';
+          statusEl.textContent = '✗ Error HTTP ' + data.status + '\n\n' + errorMsg;
+          statusEl.className = 'error';
+
+          // Record failed submission
+          const history = loadHistory(domain);
+          urlList.forEach(url => {
+            history.push({
+              time: new Date().toLocaleString(),
+              url: url,
+              status: data.status || 'ERROR'
+            });
+          });
+          saveHistory(domain, history);
+          renderHistory(domain, domain + 'History');
+        }
+      } catch (err) {
+        statusEl.textContent = '✗ Fetch Error\n\n' + err.message + '\n\nMake sure your proxy URL is correct and accessible.';
+        statusEl.className = 'error';
+        console.error('Fetch error:', err);
+      }
+    }
+
+    // Event listeners
+    document.getElementById('macSubmit').addEventListener('click', () => {
+      const urls = document.getElementById('macUrls').value.trim().split('\n').filter(u => u.trim());
+      if (!urls.length) {
+        alert('Enter at least one URL');
+        return;
+      }
+      const cfg = CONFIG.macgizmoguy;
+      submitToIndexNow(cfg.host, cfg.key, cfg.keyLocation, urls, getProxyUrl(), document.getElementById('macStatus'), 'macgizmoguy');
+    });
+
+    document.getElementById('macSitemap').addEventListener('click', () => {
+      const cfg = CONFIG.macgizmoguy;
+      submitToIndexNow(cfg.host, cfg.key, cfg.keyLocation, [cfg.sitemap], getProxyUrl(), document.getElementById('macStatus'), 'macgizmoguy');
+    });
+
+    document.getElementById('wlbSubmit').addEventListener('click', () => {
+      const urls = document.getElementById('wlbUrls').value.trim().split('\n').filter(u => u.trim());
+      if (!urls.length) {
+        alert('Enter at least one URL');
+        return;
+      }
+      const cfg = CONFIG.waterlilybear;
+      submitToIndexNow(cfg.host, cfg.key, cfg.keyLocation, urls, getProxyUrl(), document.getElementById('wlbStatus'), 'waterlilybear');
+    });
+
+    document.getElementById('wlbSitemap').addEventListener('click', () => {
+      const cfg = CONFIG.waterlilybear;
+      submitToIndexNow(cfg.host, cfg.key, cfg.keyLocation, [cfg.sitemap], getProxyUrl(), document.getElementById('wlbStatus'), 'waterlilybear');
+    });
+
+    // Initial render - check if elements exist first
+    window.addEventListener('DOMContentLoaded', function() {
+      renderHistory('macgizmoguy', 'macHistory');
+      renderHistory('waterlilybear', 'wlbHistory');
+    });
+  </script>
+
+</body>
+</html>
