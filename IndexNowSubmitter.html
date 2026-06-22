@@ -65,63 +65,63 @@
   <div class="box" style="background: #fffacd; border-color: #daa520;">
     <h3>⚙️ Configuration</h3>
     <label for="proxyUrl">Proxy URL (your server-side endpoint):</label>
-    <input type="text" id="proxyUrl" value="https://macgizmoguy.com/indexnow-proxy.php" placeholder="https://yourdomain.com/indexnow-proxy.php">
-    <p style="font-size: 12px; color: #666;">Leave blank to use the default. Update this to match your actual proxy path.</p>
+    <input type="text" id="proxyUrl" value="https://your-domain.com/indexnow-proxy.php" placeholder="https://your-domain.com/indexnow-proxy.php">
+    <p style="font-size: 12px; color: #666;">Update this to match your actual proxy path before use.</p>
   </div>
 
-  <!-- MacGizmoGuy -->
+  <!-- Site One -->
   <div class="box">
-    <h2>MacGizmoGuy.com</h2>
+    <h2>Site One</h2>
 
-    <label for="macUrls">URLs (one per line):</label>
-    <textarea id="macUrls" rows="6" placeholder="https://macgizmoguy.com/page-1&#10;https://macgizmoguy.com/page-2"></textarea>
+    <label for="site1Urls">URLs (one per line):</label>
+    <textarea id="site1Urls" rows="6" placeholder="https://your-first-domain.com/page-1&#10;https://your-first-domain.com/page-2"></textarea>
     
-    <button id="macSubmit">Submit URLs</button>
-    <button id="macSitemap">Submit Sitemap</button>
+    <button id="site1Submit">Submit URLs</button>
+    <button id="site1Sitemap">Submit Sitemap</button>
 
     <h3>Status</h3>
-    <div class="status" id="macStatus">Ready</div>
+    <div class="status" id="site1Status">Ready</div>
     
     <h3>Recent Submissions</h3>
-    <div class="history" id="macHistory">None yet</div>
+    <div class="history" id="site1History">None yet</div>
   </div>
 
-  <!-- WaterLilyBear -->
+  <!-- Site Two -->
   <div class="box">
-    <h2>WaterLilyBear.com</h2>
+    <h2>Site Two</h2>
 
-    <label for="wlbUrls">URLs (one per line):</label>
-    <textarea id="wlbUrls" rows="6" placeholder="https://waterlilybear.com/page-1&#10;https://waterlilybear.com/page-2"></textarea>
+    <label for="site2Urls">URLs (one per line):</label>
+    <textarea id="site2Urls" rows="6" placeholder="https://your-second-domain.com/page-1&#10;https://your-second-domain.com/page-2"></textarea>
     
-    <button id="wlbSubmit">Submit URLs</button>
-    <button id="wlbSitemap">Submit Sitemap</button>
+    <button id="site2Submit">Submit URLs</button>
+    <button id="site2Sitemap">Submit Sitemap</button>
 
     <h3>Status</h3>
-    <div class="status" id="wlbStatus">Ready</div>
+    <div class="status" id="site2Status">Ready</div>
     
     <h3>Recent Submissions</h3>
-    <div class="history" id="wlbHistory">None yet</div>
+    <div class="history" id="site2History">None yet</div>
   </div>
 
   <script>
     const CONFIG = {
-      macgizmoguy: {
-        host: 'macgizmoguy.com',
-        key: 'macgizmoguy',
-        keyLocation: 'https://macgizmoguy.com/macgizmoguy.txt',
-        sitemap: 'https://macgizmoguy.com/sitemap.xml'
+      site1: {
+        host: 'your-first-domain.com',
+        key: 'your-indexnow-key-here',
+        keyLocation: 'https://your-first-domain.com/your-indexnow-key-here.txt',
+        sitemap: 'https://your-first-domain.com/sitemap.xml'
       },
-      waterlilybear: {
-        host: 'waterlilybear.com',
-        key: 'waterlilybear',
-        keyLocation: 'https://waterlilybear.com/waterlilybear.txt',
-        sitemap: 'https://waterlilybear.com/sitemap.xml'
+      site2: {
+        host: 'your-second-domain.com',
+        key: 'your-indexnow-key-here',
+        keyLocation: 'https://your-second-domain.com/your-indexnow-key-here.txt',
+        sitemap: 'https://your-second-domain.com/sitemap.xml'
       }
     };
 
     function getProxyUrl() {
       const customUrl = document.getElementById('proxyUrl').value.trim();
-      return customUrl || 'https://macgizmoguy.com/indexnow-proxy.php';
+      return customUrl || 'https://your-domain.com/indexnow-proxy.php';
     }
 
     function loadHistory(domain) {
@@ -221,40 +221,40 @@
     }
 
     // Event listeners
-    document.getElementById('macSubmit').addEventListener('click', () => {
-      const urls = document.getElementById('macUrls').value.trim().split('\n').filter(u => u.trim());
+    document.getElementById('site1Submit').addEventListener('click', () => {
+      const urls = document.getElementById('site1Urls').value.trim().split('\n').filter(u => u.trim());
       if (!urls.length) {
         alert('Enter at least one URL');
         return;
       }
-      const cfg = CONFIG.macgizmoguy;
-      submitToIndexNow(cfg.host, cfg.key, cfg.keyLocation, urls, getProxyUrl(), document.getElementById('macStatus'), 'macgizmoguy');
+      const cfg = CONFIG.site1;
+      submitToIndexNow(cfg.host, cfg.key, cfg.keyLocation, urls, getProxyUrl(), document.getElementById('site1Status'), 'site1');
     });
 
-    document.getElementById('macSitemap').addEventListener('click', () => {
-      const cfg = CONFIG.macgizmoguy;
-      submitToIndexNow(cfg.host, cfg.key, cfg.keyLocation, [cfg.sitemap], getProxyUrl(), document.getElementById('macStatus'), 'macgizmoguy');
+    document.getElementById('site1Sitemap').addEventListener('click', () => {
+      const cfg = CONFIG.site1;
+      submitToIndexNow(cfg.host, cfg.key, cfg.keyLocation, [cfg.sitemap], getProxyUrl(), document.getElementById('site1Status'), 'site1');
     });
 
-    document.getElementById('wlbSubmit').addEventListener('click', () => {
-      const urls = document.getElementById('wlbUrls').value.trim().split('\n').filter(u => u.trim());
+    document.getElementById('site2Submit').addEventListener('click', () => {
+      const urls = document.getElementById('site2Urls').value.trim().split('\n').filter(u => u.trim());
       if (!urls.length) {
         alert('Enter at least one URL');
         return;
       }
-      const cfg = CONFIG.waterlilybear;
-      submitToIndexNow(cfg.host, cfg.key, cfg.keyLocation, urls, getProxyUrl(), document.getElementById('wlbStatus'), 'waterlilybear');
+      const cfg = CONFIG.site2;
+      submitToIndexNow(cfg.host, cfg.key, cfg.keyLocation, urls, getProxyUrl(), document.getElementById('site2Status'), 'site2');
     });
 
-    document.getElementById('wlbSitemap').addEventListener('click', () => {
-      const cfg = CONFIG.waterlilybear;
-      submitToIndexNow(cfg.host, cfg.key, cfg.keyLocation, [cfg.sitemap], getProxyUrl(), document.getElementById('wlbStatus'), 'waterlilybear');
+    document.getElementById('site2Sitemap').addEventListener('click', () => {
+      const cfg = CONFIG.site2;
+      submitToIndexNow(cfg.host, cfg.key, cfg.keyLocation, [cfg.sitemap], getProxyUrl(), document.getElementById('site2Status'), 'site2');
     });
 
     // Initial render - check if elements exist first
     window.addEventListener('DOMContentLoaded', function() {
-      renderHistory('macgizmoguy', 'macHistory');
-      renderHistory('waterlilybear', 'wlbHistory');
+      renderHistory('site1', 'site1History');
+      renderHistory('site2', 'site2History');
     });
   </script>
 
